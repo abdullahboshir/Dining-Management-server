@@ -91,6 +91,7 @@ exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
 
 
 exports.mealSwitchService = async (studentId, mealSwitchBody) => {
+    
 
     const mealSwitch = await Student.findByIdAndUpdate(
         studentId, 
@@ -104,44 +105,56 @@ exports.mealSwitchService = async (studentId, mealSwitchBody) => {
 
 
     const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
-
+    const existingStudent = await Student.findById(studentId);
 
     if (mealSwitch.mealInfo.mealStatus === 'on') {
      
         let totalMealIncreaseInterval = setInterval(async () => {
           try {
-            const student = await Student.findById(studentId);
 
-          
-            if (student.mealInfo.mealStatus === 'on') {
-           const increasing = student.mealInfo.totalMeal += 1;
-           await student.save();
+            const latestMealSwitch = await Student.findById(studentId);
 
-           const totalCost =   mealChargeDeclaration.mealCharge * increasing;
-        
-
-           if(student.mealInfo.currentDeposit > 100){
-           
-          }else{
-            clearInterval(totalMealIncreaseInterval);
-            return;
-          };
-          
-          const currentDeposit = student.mealInfo.currentDeposit - totalCost;
-
-              await Student.findByIdAndUpdate(
-                studentId,
-                {
-                  $set: {
-                    'mealInfo.totalCost': totalCost,
-                    'mealInfo.currentDeposit': currentDeposit
-                  },
-                }
-              );
-
-            } else {
+         
+            if (latestMealSwitch.mealInfo.mealStatus === 'off') {
               clearInterval(totalMealIncreaseInterval);
+              console.log('Interval stopped because mealStatus is off');
+              return;
             }
+
+                const increasing = 1;
+                existingStudent.mealInfo.totalMeal += increasing;
+                await existingStudent.save();
+
+        //    console.log('testtttttttttttttttt', increasing)
+
+            const multiplyMeal =   mealChargeDeclaration.mealCharge * increasing;
+            const totalCost =   existingStudent.mealInfo.totalCost += multiplyMeal;
+
+            const currentDeposit = existingStudent.mealInfo.currentDeposit -= multiplyMeal;
+
+            if (latestMealSwitch.mealInfo.currentDeposit <= 100) {
+                await Student.findByIdAndUpdate(
+                    studentId,
+                    {
+                      $set: {
+                        'mealInfo.mealStatus': 'off',
+                      },
+                    }
+                  );
+                  return;
+              }
+
+
+            await Student.findByIdAndUpdate(
+              studentId,
+              {
+                $set: {
+                  'mealInfo.totalCost': totalCost,
+                  'mealInfo.currentDeposit': currentDeposit
+                },
+              }
+            );
+        
           } catch (error) {
             console.error('Error updating totalMeal:', error);
             clearInterval(totalMealIncreaseInterval);
