@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 
 
 
-
 // A reusable function to generate the date object
 function generateDateObject() {
     const currentDate = new Date();
@@ -13,8 +12,7 @@ function generateDateObject() {
         hour: 'numeric',
         minute: 'numeric',
         second: 'numeric',
-        timeZone: 'Asia/Dhaka',
-        hour12: true
+        timeZone: 'Asia/Dhaka', // Set the timezone to Bangladesh
     };
     const formattedDate = currentDate.toLocaleString('en-BD', options);
 
@@ -29,7 +27,6 @@ function generateDateObject() {
         bdFormattedDate: formattedDate,
     };
 };
-
 
 
 
@@ -74,7 +71,7 @@ const DeclarationSchema = new mongoose.Schema({
                 hour12: true
             };
             const formattedDate = currentDate.toLocaleString('en-BD', options);
-
+            
             return {
                 year: currentDate.getFullYear(),
                 month: currentDate.getMonth() + 1,
@@ -87,9 +84,9 @@ const DeclarationSchema = new mongoose.Schema({
             };
         }
     },
-    updatedAt: {
+      updatedAt: {
         type: Object,
-    }
+      }
 },
     { timestamps: true }
 );

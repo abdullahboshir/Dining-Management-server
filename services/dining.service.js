@@ -26,55 +26,11 @@ console.log('got valueeeee', diningDiclaration)
 
 exports.getDeclarationService = async () => {
 
-
-    // Create a date object for the current date and time in Bangladesh timezone
-    const currentDateInBD = new Date().toLocaleString('en-US', { timeZone: 'Asia/Dhaka' });
-    
-    const currentDateObject = new Date(currentDateInBD);
-    
-    const humanReadable = {
-        year: currentDateObject.getFullYear(),
-        month: currentDateObject.getMonth() + 1, // Adding 1 because months are zero-based
-        day: currentDateObject.getDate(),
-        hour: currentDateObject.getHours(),
-        minute: currentDateObject.getMinutes(),
-        second: currentDateObject.getSeconds(),
-        millisecond: currentDateObject.getMilliseconds(),
-        bdFormattedDate: currentDateInBD,
-    };
-    
-    console.log('Full Date in Bangladesh:', humanReadable);
-    
-
-
-
-    
-
-    
-
-
-    const getDeclaration = await DiningDeclaration.find({});
-    console.log('this is failed', getDeclaration[0].createdAt)
+    const getDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+  
     return getDeclaration;
 };
 
-
-
-// create Dining declaration
-// exports.declarationService = async (declarationBody) => {
-//     console.log('got valueeeee', declarationBody)
-
-//     const diningDiclaration = await DiningDeclaration.updateMany({}, {
-//         $set: {
-//             'mealInfo.maintenanceCharge': declarationBody.maintenanceCharge,
-//             'mealInfo.mealCharge': declarationBody.mealCharge,
-//             'mealInfo.fixedMeal': declarationBody.fixedMealCharge,
-//             'mealInfo.noticeBoard': declarationBody.noticeBoard,
-//         }
-//     });
-
-//     return diningDiclaration;
-// };
 
 
 exports.studentCreateService = async (studentBody) => {
@@ -96,11 +52,13 @@ exports.getStudentService = async () => {
 
 exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
     const existingStudent = await Student.findOne({ _id: studentId });
+    const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+
 
 
     const updatedMeal = existingStudent.mealInfo.totalMeal + parseInt(diningFeeBody.addMeal);
     const currentDepositCalculate = existingStudent.mealInfo.currentDeposit + parseInt(diningFeeBody.addMoney);
-    const totalMeal = existingStudent.mealInfo.mealCharge * parseInt(diningFeeBody.addMeal);
+    const totalMeal = mealChargeDeclaration.mealCharge * parseInt(diningFeeBody.addMeal);
     const totalCost = existingStudent.mealInfo.totalCost + totalMeal;
     const currentDeposit = currentDepositCalculate - totalMeal;
     const updatedTotalDeposit = existingStudent.mealInfo.totalDeposit +  parseInt(diningFeeBody.addMoney);
@@ -124,31 +82,6 @@ exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
     );
 
 
-
-
-    // setInterval(async () => {
-    //     const student = await Student.findOne({ _id: studentId });
-    //     const convertNumber = parseFloat(student.mealInfo.mealCharge);
-    //     console.log('totallll', typeof(student.mealInfo.totalMeal))
-
-    //     if (student) {
-    //         student.mealInfo.totalMeal++; // Increment totalMeal
-    //         const updatedResult = await Student.updateOne(
-    //             { _id: studentId },
-    //             { $set: { 
-    //                 "mealInfo.totalMeal": student.mealInfo.totalMeal,
-    //                 "mealInfo.totalCost": student.mealInfo.totalMeal * convertNumber,
-
-    //         } }
-    //         );
-    //         console.log("Total meal updated:", updatedResult);
-    //     } else {
-    //         console.log("Student not found.");
-    //     }
-    // }, 5000); // 5000 milliseconds = 5 seconds
-
-
-
     if (!studentDiningFee) {
         throw new Error('Student not fount')
     };
@@ -156,16 +89,67 @@ exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
 };
 
 
+
 exports.mealSwitchService = async (studentId, mealSwitchBody) => {
+
     const mealSwitch = await Student.findByIdAndUpdate(
         studentId, 
        { 
         $set: {
-            'mealInfo.mealStutas': mealSwitchBody.mealSwitch
+            'mealInfo.mealStatus': mealSwitchBody.mealSwitch,
         }
     },
     { new: true }
     );
+
+
+    const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+
+
+    if (mealSwitch.mealInfo.mealStatus === 'on') {
+     
+        let totalMealIncreaseInterval = setInterval(async () => {
+          try {
+            const student = await Student.findById(studentId);
+
+          
+            if (student.mealInfo.mealStatus === 'on') {
+           const increasing = student.mealInfo.totalMeal += 1;
+           await student.save();
+
+           const totalCost =   mealChargeDeclaration.mealCharge * increasing;
+        
+
+           if(student.mealInfo.currentDeposit > 100){
+           
+          }else{
+            clearInterval(totalMealIncreaseInterval);
+            return;
+          };
+          
+          const currentDeposit = student.mealInfo.currentDeposit - totalCost;
+
+              await Student.findByIdAndUpdate(
+                studentId,
+                {
+                  $set: {
+                    'mealInfo.totalCost': totalCost,
+                    'mealInfo.currentDeposit': currentDeposit
+                  },
+                }
+              );
+
+            } else {
+              clearInterval(totalMealIncreaseInterval);
+            }
+          } catch (error) {
+            console.error('Error updating totalMeal:', error);
+            clearInterval(totalMealIncreaseInterval);
+          }
+        }, 2000);
+
+        console.log('increasinggggggg', totalMealIncreaseInterval)
+      }
 
     return mealSwitch;
 };

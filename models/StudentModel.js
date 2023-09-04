@@ -116,7 +116,7 @@ address: {
     }
 },
 mealInfo:{
-    mealStutas: {type: String, enum: ['off', 'on'], default: 'off'},
+    mealStatus: {type: String, enum: ['off', 'on'], default: 'off'},
     totalDeposit: { type: Number, default: 0 },
     currentDeposit: { type: Number, default: 0 },
     lastMonthRefund: { type: Number, default: 0 },
