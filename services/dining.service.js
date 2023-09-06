@@ -5,6 +5,7 @@ const Student = require("../models/StudentModel");
 
 
 
+
 // Dining Activities------------------ 
 
 // create a new Dining
@@ -16,18 +17,14 @@ exports.diningCreateService = async (diningInfo) => {
 
 // create Dining declaration
 exports.declarationCreateService = async (declarationBody) => {
-
 const diningDiclaration = await DiningDeclaration.create(declarationBody);
-console.log('got valueeeee', diningDiclaration)
   
     return diningDiclaration;
 };
 
 
 exports.getDeclarationService = async () => {
-
     const getDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
-  
     return getDeclaration;
 };
 
@@ -166,3 +163,56 @@ exports.mealSwitchService = async (studentId, mealSwitchBody) => {
 
     return mealSwitch;
 };
+
+
+
+
+
+
+async function updateMealInfoData() {
+  try {
+
+    // Get the current date and month
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear().toString();
+    const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
+
+    // Check if the current month exists in any student's mealInfo
+    const monthExists = await Student.exists({
+      [`mealInfo.${currentYear}.${'november'}`]: { $exists: true }
+    });
+
+
+    if (!monthExists) {
+      const studentMealInfo = {
+        mealStatus: 'off',
+        maintenanceFee: 0,
+        totalDeposit: 0,
+        currentDeposit: 0,
+        lastMonthRefund: 0,
+        lastMonthDue: 0,
+        totalMeal: 0,
+        mealCharge: 0,
+        fixedMeal: 0,
+        fixedMealCharge: 0,
+        totalCost: 0,
+        dueDeposite: 0,
+        refundable: 0
+      };
+
+      const result = await Student.updateMany(
+        {},
+        { $set: { [`mealInfo.${currentYear}.${'november'}`]: studentMealInfo } }
+      );
+
+      console.log(`Added ${'november'} to mealInfo.2023 for ${result} students.`);
+    } else {
+      console.log(`${'november'} already exists in mealInfo.2023. No update needed.`);
+    }
+
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// setInterval(updateMealInfoData, 24 * 60 * 60 * 1000);

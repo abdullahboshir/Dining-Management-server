@@ -3,6 +3,7 @@ const Schema = mongoose.Schema;
 const validator = require('validator');
 
 
+
 const studentSchema = new Schema({
     studentId: {
         type: String,
@@ -64,14 +65,14 @@ const studentSchema = new Schema({
         unique: true,
         required: [true, 'Email or Phone Number is required'],
         validate: {
-          async validator(v) {
-                const count = await mongoose.models.Student?.countDocuments({emailOrNumber: v});
-            if (count > 0) {
-                const existing = await  mongoose.models.Student.findOne({emailOrNumber: v});
-                if (!(existing._id.toString() === this._id.toString())) {
-                    throw new Error("Email or Number is not unique");
+            async validator(v) {
+                const count = await mongoose.models.Student?.countDocuments({ emailOrNumber: v });
+                if (count > 0) {
+                    const existing = await mongoose.models.Student.findOne({ emailOrNumber: v });
+                    if (!(existing._id.toString() === this._id.toString())) {
+                        throw new Error("Email or Number is not unique");
+                    }
                 }
-            }
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v) || /^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{5})$/.test(v);
             },
             message: props => `${props.value} is not a valide Email or Phone number`
@@ -82,101 +83,91 @@ const studentSchema = new Schema({
         enum: ['admin', 'manager', 'user'],
         default: 'user'
     },
-address: {
-    father: {
-        type: String,
-        required: [true, 'Please provide your Father name'],
-        trim: true
+    address: {
+        father: {
+            type: String,
+            required: [true, 'Please provide your Father name'],
+            trim: true
+        },
+        mother: {
+            type: String,
+            required: [true, 'Please provide your Mother name'],
+            trim: true
+        },
+        divisionValue: {
+            type: String,
+            required: [true, 'Division is required']
+        },
+        districtValue: {
+            type: String,
+            required: [true, 'District is required']
+        },
+        subDistrictValue: {
+            type: String,
+            required: [true, 'Sub-district is required']
+        },
+        allianceValue: {
+            type: String,
+            required: [true, 'Alliance is required']
+        },
+        village: {
+            type: String,
+            required: [true, 'Please provide your Village name'],
+            trim: true
+        }
     },
-    mother: {
-        type: String,
-        required: [true, 'Please provide your Mother name'],
-        trim: true
+    mealInfo: {
+        type: Object,
+        default: {},
     },
-    divisionValue: {
-        type: String,
-        required: [true, 'Division is required']
-    },
-    districtValue: {
-        type: String,
-        required: [true, 'District is required']
-    },
-    subDistrictValue: {
-        type: String,
-        required: [true, 'Sub-district is required']
-    },
-    allianceValue: {
-        type: String,
-        required: [true, 'Alliance is required']
-    },
-    village: {
-        type: String,
-        required: [true, 'Please provide your Village name'],
-        trim: true
-    }
-},
-mealInfo:{
-    mealStatus: {type: String, enum: ['off', 'on'], default: 'off'},
-    totalDeposit: { type: Number, default: 0 },
-    currentDeposit: { type: Number, default: 0 },
-    lastMonthRefund: { type: Number, default: 0 },
-    lastMonthDue: { type: Number, default: 0 },
-    totalMeal: { type: Number, default: 0 },
-    mealCharge: { type: String, default: 0 },
-    fixedMeal: { type: Number, default: 0 },
-    fixedMealCharge: { type: Number, default: 0 },
-    totalCost: { type: Number, default: 0 },
-    refundable: { type: Number, default: 0 }
-},
-maintenanceFee: {
-    fee2023: {
-        january: { type: Number, default: 0 },
-        february: { type: Number, default: 0 },
-        april: { type: Number, default: 0 },
-        march: { type: Number, default: 0 },
-        may: { type: Number, default: 0 },
-        jun: { type: Number, default: 0 },
-        july: { type: Number, default: 0 },
-        august: { type: Number, default: 0 },
-        september: { type: Number, default: 0 },
-        october: { type: Number, default: 0 },
-        november: { type: Number, default: 0 },
-        december: { type: Number, default: 0 }
-    },
-    fee2024: {
-        january: { type: Number, default: 0 },
-        february: { type: Number, default: 0 },
-        march: { type: Number, default: 0 },
-        april: { type: Number, default: 0 },
-        may: { type: Number, default: 0 },
-        jun: { type: Number, default: 0 },
-        july: { type: Number, default: 0 },
-        august: { type: Number, default: 0 },
-        september: { type: Number, default: 0 },
-        october: { type: Number, default: 0 },
-        november: { type: Number, default: 0 },
-        december: { type: Number, default: 0 }
-    },
-    fee2025: {
-        january: { type: Number, default: 0 },
-        february: { type: Number, default: 0 },
-        march: { type: Number, default: 0 },
-        april: { type: Number, default: 0 },
-        may: { type: Number, default: 0 },
-        jun: { type: Number, default: 0 },
-        july: { type: Number, default: 0 },
-        august: { type: Number, default: 0 },
-        september: { type: Number, default: 0 },
-        october: { type: Number, default: 0 },
-        november: { type: Number, default: 0 },
-        december: { type: Number, default: 0 }
-    }
-},
+
+    mealInfo: {
+        type: Schema.Types.Mixed,
+        default: {},
+
+      },
     createdAt: Date,
     updatedAt: Date
 },
     { timestamps: true }
 );
+
+
+
+
+
+// Define a pre-save middleware to update mealInfo dynamically
+studentSchema.pre('save', function (next) {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear().toString();
+    const currentMonth = currentDate.toLocaleString('default', {month: 'long', locale: 'bn-BD'});
+    // Initialize mealInfo if it doesn't exist
+    if (!this.mealInfo) {
+        this.mealInfo = {};
+    }
+
+  
+    // Create or update the dynamic key based on the current year and month
+    this.mealInfo[currentYear] = this.mealInfo[currentYear] || {};
+    this.mealInfo[currentYear][currentMonth] = {
+      mealStatus: 'off',
+      maintenanceFee: 0,
+      totalDeposit: 0,
+      currentDeposit: 0,
+      lastMonthRefund: 0,
+      lastMonthDue: 0,
+      totalMeal: 0,
+      mealCharge: 0,
+      fixedMeal: 0,
+      fixedMealCharge: 0,
+      totalCost: 0,
+      dueDeposite: 0,
+      refundable: 0,
+    };
+  
+    // Continue with the save operation
+    next();
+  });
 
 
 
