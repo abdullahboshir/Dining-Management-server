@@ -5,163 +5,171 @@ const Student = require("../models/StudentModel");
 
 
 
-
 // Dining Activities------------------ 
 
 // create a new Dining
 exports.diningCreateService = async (diningInfo) => {
-    const dining = await Dining.create(diningInfo);
-    return dining;
+  const dining = await Dining.create(diningInfo);
+  return dining;
 };
 
 
 // create Dining declaration
 exports.declarationCreateService = async (declarationBody) => {
-const diningDiclaration = await DiningDeclaration.create(declarationBody);
-  
-    return diningDiclaration;
+  const diningDiclaration = await DiningDeclaration.create(declarationBody);
+
+  return diningDiclaration;
 };
 
 
 exports.getDeclarationService = async () => {
-    const getDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
-    return getDeclaration;
+  const getDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+  return getDeclaration;
 };
 
 
 
 exports.studentCreateService = async (studentBody) => {
-    const student = await Student.create(studentBody);
-    return student;
+  const student = await Student.create(studentBody);
+  return student;
 };
 
 exports.getDiningService = async () => {
-    const dining = await Dining.find({});
-    return dining;
+  const dining = await Dining.find({});
+  return dining;
 };
 
 exports.getStudentService = async () => {
-    const studentData = await Student.find({});
-    return studentData;
+  const studentData = await Student.find({});
+  return studentData;
 };
+
 
 
 
 exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
-    const existingStudent = await Student.findOne({ _id: studentId });
-    const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear().toString();
+  const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
+
+
+  const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+  const existingStudent = await Student.findOne({ _id: studentId });
 
 
 
-    const updatedMeal = existingStudent.mealInfo.totalMeal + parseInt(diningFeeBody.addMeal);
-    const currentDepositCalculate = existingStudent.mealInfo.currentDeposit + parseInt(diningFeeBody.addMoney);
-    const totalMeal = mealChargeDeclaration.mealCharge * parseInt(diningFeeBody.addMeal);
-    const totalCost = existingStudent.mealInfo.totalCost + totalMeal;
-    const currentDeposit = currentDepositCalculate - totalMeal;
-    const updatedTotalDeposit = existingStudent.mealInfo.totalDeposit +  parseInt(diningFeeBody.addMoney);
+
+  const updatedMeal = existingStudent.mealInfo[currentYear][currentMonth].totalMeal + parseInt(diningFeeBody.addMeal);
+  const currentDepositCalculate = existingStudent.mealInfo[currentYear][currentMonth].currentDeposit + parseInt(diningFeeBody.addMoney);
+  const totalMeal = parseInt(mealChargeDeclaration.mealCharge) * parseInt(diningFeeBody.addMeal);
+  const totalCost = existingStudent.mealInfo[currentYear][currentMonth].totalCost + totalMeal;
+  const currentDeposit = currentDepositCalculate - totalMeal;
+  const updatedTotalDeposit = existingStudent.mealInfo[currentYear][currentMonth].totalDeposit + parseInt(diningFeeBody.addMoney);
 
 
-    // console.log('cjjjjjjj', currentDepositCalculate)
 
-    const studentDiningFee = await Student.findByIdAndUpdate(
-        studentId,
-        {
-            $set: {
-                'maintenanceFee.fee2023.january': diningFeeBody.maintenanceFee,
-                'mealInfo.totalMeal': updatedMeal,
-                'mealInfo.currentDeposit': currentDeposit,
-                'mealInfo.totalCost': totalCost,
-                'mealInfo.totalDeposit': updatedTotalDeposit
+  const studentDiningFee = await Student.findByIdAndUpdate(
+    studentId,
+    {
+      $set: {
+        [`mealInfo.${currentYear}.${currentMonth}.maintenanceFee`]: diningFeeBody.maintenanceFee,
+        [`mealInfo.${currentYear}.${currentMonth}.totalMeal`]: updatedMeal,
+        [`mealInfo.${currentYear}.${currentMonth}.currentDeposit`]: currentDeposit,
+        [`mealInfo.${currentYear}.${currentMonth}.totalCost`]: totalCost,
+        [`mealInfo.${currentYear}.${currentMonth}.totalDeposit`]: updatedTotalDeposit
 
-            }
-        },
-        { new: true }
-    );
+      }
+    },
+    { new: true }
+  );
 
-
-    if (!studentDiningFee) {
-        throw new Error('Student not fount')
-    };
-    return studentDiningFee;
+  if (!studentDiningFee) {
+    throw new Error('Student not fount')
+  };
+  return studentDiningFee;
 };
 
 
 
-exports.mealSwitchService = async (studentId, mealSwitchBody) => {
-    
 
-    const mealSwitch = await Student.findByIdAndUpdate(
-        studentId, 
-       { 
-        $set: {
-            'mealInfo.mealStatus': mealSwitchBody.mealSwitch,
-        }
+
+exports.mealSwitchService = async (studentId, mealSwitchBody) => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear().toString();
+  const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
+
+  const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
+  const existingStudent = await Student.findById(studentId);
+
+
+  const mealSwitch = await Student.findByIdAndUpdate(
+    studentId,
+    {
+      $set: {
+        [`mealInfo.${currentYear}.${currentMonth}.mealStatus`]: mealSwitchBody.mealSwitch,
+      }
     },
     { new: true }
-    );
+  );
+
+  if (!mealSwitch) {
+    throw new Error(`Student with ID ${studentId} not found`);
+  }
 
 
-    const mealChargeDeclaration = await DiningDeclaration.findOne({}).sort({ "_id": -1 });
-    const existingStudent = await Student.findById(studentId);
+  if (mealSwitch.mealInfo[currentYear][currentMonth].mealStatus === 'on') {
+    let totalMealIncreaseInterval = setInterval(async () => {
+      try {
 
-    if (mealSwitch.mealInfo.mealStatus === 'on') {
-     
-        let totalMealIncreaseInterval = setInterval(async () => {
-          try {
+        const latestMealSwitch = await Student.findById(studentId);
 
-            const latestMealSwitch = await Student.findById(studentId);
+        if (latestMealSwitch.mealInfo[currentYear][currentMonth].mealStatus === 'off') {
+          clearInterval(totalMealIncreaseInterval);
+          console.log('Interval stopped because mealStatus is off');
+          return;
+        }
 
-         
-            if (latestMealSwitch.mealInfo.mealStatus === 'off') {
-              clearInterval(totalMealIncreaseInterval);
-              console.log('Interval stopped because mealStatus is off');
-              return;
+        const increasing = 1;
+        existingStudent.mealInfo[currentYear][currentMonth].totalMeal += increasing;
+        const multiplyMeal = parseInt(mealChargeDeclaration.mealCharge) * increasing;
+        const totalCost = existingStudent.mealInfo[currentYear][currentMonth].totalCost += multiplyMeal;
+        const currentDeposit = existingStudent.mealInfo[currentYear][currentMonth].currentDeposit -= multiplyMeal;
+
+        if (latestMealSwitch.mealInfo[currentYear][currentMonth].currentDeposit <= 100) {
+          clearInterval(totalMealIncreaseInterval);
+          await Student.findByIdAndUpdate(
+            studentId,
+            {
+              $set: {
+                [`mealInfo.${currentYear}.${currentMonth}.mealStatus`]: 'off',
+              },
             }
-
-                const increasing = 1;
-                existingStudent.mealInfo.totalMeal += increasing;
-                await existingStudent.save();
-
-        //    console.log('testtttttttttttttttt', increasing)
-
-            const multiplyMeal =   mealChargeDeclaration.mealCharge * increasing;
-            const totalCost =   existingStudent.mealInfo.totalCost += multiplyMeal;
-
-            const currentDeposit = existingStudent.mealInfo.currentDeposit -= multiplyMeal;
-
-            if (latestMealSwitch.mealInfo.currentDeposit <= 100) {
-                await Student.findByIdAndUpdate(
-                    studentId,
-                    {
-                      $set: {
-                        'mealInfo.mealStatus': 'off',
-                      },
-                    }
-                  );
-                  return;
-              }
+          );
+          console.log('Interval stopped because currentDeposit is below 100');
+          return;
+        }
 
 
-            await Student.findByIdAndUpdate(
-              studentId,
-              {
-                $set: {
-                  'mealInfo.totalCost': totalCost,
-                  'mealInfo.currentDeposit': currentDeposit
-                },
-              }
-            );
-        
-          } catch (error) {
-            console.error('Error updating totalMeal:', error);
-            clearInterval(totalMealIncreaseInterval);
+        // Update totalCost and currentDeposit
+        await Student.findByIdAndUpdate(
+          studentId,
+          {
+            $set: {
+              [`mealInfo.${currentYear}.${currentMonth}.totalMeal`]: existingStudent.mealInfo[currentYear][currentMonth].totalMeal,
+              [`mealInfo.${currentYear}.${currentMonth}.totalCost`]: totalCost,
+              [`mealInfo.${currentYear}.${currentMonth}.currentDeposit`]: currentDeposit,
+            },
           }
-        }, 2000);
-
-        console.log('increasinggggggg', totalMealIncreaseInterval)
+        );
       }
+      catch (error) {
+        console.error('Error updating totalMeal:', error);
+        clearInterval(totalMealIncreaseInterval);
+      }
+    }, 2000);
+  }
 
-    return mealSwitch;
+  return mealSwitch;
 };
 
 
@@ -179,7 +187,7 @@ async function updateMealInfoData() {
 
     // Check if the current month exists in any student's mealInfo
     const monthExists = await Student.exists({
-      [`mealInfo.${currentYear}.${'november'}`]: { $exists: true }
+      [`mealInfo.${currentYear}.${currentMonth}`]: { $exists: true }
     });
 
 
@@ -202,12 +210,12 @@ async function updateMealInfoData() {
 
       const result = await Student.updateMany(
         {},
-        { $set: { [`mealInfo.${currentYear}.${'november'}`]: studentMealInfo } }
+        { $set: { [`mealInfo.${currentYear}.${currentMonth}`]: studentMealInfo } }
       );
 
-      console.log(`Added ${'november'} to mealInfo.2023 for ${result} students.`);
+      console.log(`Added ${currentMonth} to mealInfo.2023 for ${result} students.`);
     } else {
-      console.log(`${'november'} already exists in mealInfo.2023. No update needed.`);
+      console.log(`${currentMonth} already exists in mealInfo.2023. No update needed.`);
     }
 
   } catch (error) {
@@ -215,4 +223,4 @@ async function updateMealInfoData() {
   }
 }
 
-// setInterval(updateMealInfoData, 24 * 60 * 60 * 1000);
+setInterval(updateMealInfoData, 24 * 60 * 60 * 1000);

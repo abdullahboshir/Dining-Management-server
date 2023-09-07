@@ -158,7 +158,6 @@ exports.mealSwitch = async (req, res) => {
    try {
     const studentId = req.params.id;
     const switchCommand = await mealSwitchService(studentId, req.body);
-    console.log('switchhhhhh', switchCommand)
    } catch (error) {
     
    }
