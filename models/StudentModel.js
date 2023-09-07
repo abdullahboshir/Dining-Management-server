@@ -5,6 +5,18 @@ const validator = require('validator');
 
 
 const studentSchema = new Schema({
+    authorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Author'
+    },
+    adminId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Admin'
+    },
+    managerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'manager'
+    },
     studentId: {
         type: String,
         index: true,
@@ -117,11 +129,6 @@ const studentSchema = new Schema({
         }
     },
     mealInfo: {
-        type: Object,
-        default: {},
-    },
-
-    mealInfo: {
         type: Schema.Types.Mixed,
         default: {},
 
@@ -141,12 +148,12 @@ studentSchema.pre('save', function (next) {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear().toString();
     const currentMonth = currentDate.toLocaleString('default', {month: 'long', locale: 'bn-BD'});
+
     // Initialize mealInfo if it doesn't exist
     if (!this.mealInfo) {
         this.mealInfo = {};
     }
 
-  
     // Create or update the dynamic key based on the current year and month
     this.mealInfo[currentYear] = this.mealInfo[currentYear] || {};
     this.mealInfo[currentYear][currentMonth] = {
@@ -164,8 +171,6 @@ studentSchema.pre('save', function (next) {
       dueDeposite: 0,
       refundable: 0,
     };
-  
-    // Continue with the save operation
     next();
   });
 

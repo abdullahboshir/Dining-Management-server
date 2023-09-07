@@ -185,6 +185,12 @@ async function updateMealInfoData() {
     const currentYear = currentDate.getFullYear().toString();
     const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
 
+
+     // Check if the current year exists in any student's mealInfo
+const yearExist = await Student.exists({
+  [`mealInfo.${currentYear}`]: {$exists: true}
+});
+
     // Check if the current month exists in any student's mealInfo
     const monthExists = await Student.exists({
       [`mealInfo.${currentYear}.${currentMonth}`]: { $exists: true }
