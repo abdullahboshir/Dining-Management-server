@@ -1,7 +1,7 @@
 const DiningDeclaration = require("../models/DiningDeclaration");
 const Dining = require("../models/DiningModel");
 const Student = require("../models/StudentModel");
-
+const { ObjectId } = require('mongodb');
 
 
 
@@ -186,10 +186,10 @@ async function updateMealInfoData() {
     const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
 
 
-     // Check if the current year exists in any student's mealInfo
-const yearExist = await Student.exists({
-  [`mealInfo.${currentYear}`]: {$exists: true}
-});
+    // Check if the current year exists in any student's mealInfo
+    const yearExist = await Student.exists({
+      [`mealInfo.${currentYear}`]: { $exists: true }
+    });
 
     // Check if the current month exists in any student's mealInfo
     const monthExists = await Student.exists({
@@ -230,3 +230,44 @@ const yearExist = await Student.exists({
 }
 
 setInterval(updateMealInfoData, 24 * 60 * 60 * 1000);
+
+
+
+
+exports.studentLoginService = async (loginInfoBody) => {
+  try {
+    const findUser = await Student.findOne({ emailOrPhoneNumber: loginInfoBody.emailOrPhoneNumber });
+
+    if (!findUser) {
+      return 'User not found'
+    } else if (findUser.password) {
+      console.log('password already seted')
+    };
+
+    if (!findUser.password) {
+      const pinMatching = loginInfoBody.studentPin === findUser.studentPin;
+
+      if (!pinMatching) {
+        return 'PIN is not match';
+      } else if (pinMatching === true) {
+
+        const document = await Student.updateOne(
+          { _id: findUser._id },
+          { $set: { password: loginInfoBody.password } }
+        );
+        return document;
+      };
+    }; 
+    
+    return findUser;
+  } catch (error) {
+    console.log('errorrrrrrrrrrr', error)
+  }
+};
+
+
+exports.getUserService = async (loginInfo) => {
+  const getLoginUser = await Student.findOne({emailOrPhoneNumber: loginInfo.emailOrPhoneNumber});
+  console.log('user gotttttt', getLoginUser)
+  return getLoginUser;
+};

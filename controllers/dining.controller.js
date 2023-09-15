@@ -1,4 +1,4 @@
-const { diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService } = require("../services/dining.service");
+const { getUserService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService } = require("../services/dining.service");
 
 
 
@@ -6,7 +6,6 @@ exports.diningCreate = async (req, res) => {
     try {
         const diningbody = req.body;
         const diningInfo = await diningCreateService(diningbody);
-        console.log('thsssssss', diningInfo)
 
         res.status(200).json({
             status: 'success',
@@ -161,4 +160,46 @@ exports.mealSwitch = async (req, res) => {
    } catch (error) {
     
    }
+};
+
+
+exports.setStudentLogin = async (req, res) => {
+try {
+    const resLoginInfo = await studentLoginService(req.body);
+    console.log('this is gottttttt', resLoginInfo) 
+
+    res.status(200).json({
+        status: 'success',
+        message: 'successfully get the job',
+        data: resLoginInfo
+
+    })
+} catch (error) {
+    res.status(400).json({
+        status: 'failed',
+        message: "couldn'd get the job",
+        error: error.message
+    })
+}
+};
+
+
+exports.getLoginUser = async (req, res) => {
+    try {
+        console.log('tserrrrrrrrrrrrr')
+        const getUser = await getUserService(req.body);
+
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully get the job',
+            data: getUser
+        })
+        
+    } catch (error) {
+        res.status(400).json({
+            status: 'failed',
+            message: "couldn'd get the job",
+            error: error.message
+        })
+    }
 }

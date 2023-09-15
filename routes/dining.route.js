@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration } = require('../controllers/dining.controller');
+const { getLoginUser, diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin } = require('../controllers/dining.controller');
 
 
 // created data
+router.post('/student/setLogin', getLoginUser);
 router.post('/dining/add', diningCreate);
 router.post('/students/declaration', declarationCreate);
 router.post('/student/add', studentCreate);
@@ -18,6 +19,7 @@ router.get('/students/declaration', getDeclaration);
 // api of put 
 router.patch('/student/updateDiningFee/:id', updateDiningFee);
 router.patch('/student/mealSwitch/:id', mealSwitch);
+router.patch('/student/setPassword', setStudentLogin)
 
 
 module.exports = router;

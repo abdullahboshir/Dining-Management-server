@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const bcrypt = require('bcryptjs');
 const validator = require('validator');
 
 
@@ -18,7 +19,7 @@ const studentSchema = new Schema({
       ref: 'manager'
     },
     studentId: {
-        type: String,
+        type: Number,
         index: true,
         required: [true, 'Please provide a Student ID'],
         trim: true,
@@ -29,6 +30,21 @@ const studentSchema = new Schema({
             message: 'The array must contain exactly 5 numbers.'
         }
     },
+    studentPin: {
+        type: String,
+        index: true,
+        trim: true,
+        default: function () {
+          // Generate a random 5-digit PIN as the default value
+          return Math.floor(10000 + Math.random() * 90000).toString();
+        },
+        validate: {
+          validator: function (value) {
+            return /^[0-9]{5}$/.test(value);
+          },
+          message: 'The Student ID must contain exactly 5 numbers.'
+        }
+      },
     name: {
         type: String,
         required: [true, 'Please provide a Student Name'],
@@ -69,7 +85,7 @@ const studentSchema = new Schema({
         required: [true, 'Please provide a fee of Student'],
         trim: true
     },
-    emailOrNumber: {
+    emailOrPhoneNumber: {
         type: String,
         index: { unique: true },
         trim: true,
@@ -78,17 +94,21 @@ const studentSchema = new Schema({
         required: [true, 'Email or Phone Number is required'],
         validate: {
             async validator(v) {
-                const count = await mongoose.models.Student?.countDocuments({ emailOrNumber: v });
+                const count = await mongoose.models.Student?.countDocuments({ emailOrPhoneNumber: v });
                 if (count > 0) {
-                    const existing = await mongoose.models.Student.findOne({ emailOrNumber: v });
+                    const existing = await mongoose.models.Student.findOne({ emailOrPhoneNumber: v });
                     if (!(existing._id.toString() === this._id.toString())) {
-                        throw new Error("Email or Number is not unique");
+                        throw new Error("Email or Phone Number is not unique");
                     }
                 }
                 return /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(v) || /^\(?(\d{3})\)?[- ]?(\d{3})[- ]?(\d{5})$/.test(v);
             },
             message: props => `${props.value} is not a valide Email or Phone number`
         }
+    },
+    password: {
+        type: String,
+        default: ''
     },
     role: {
         type: String,
@@ -137,9 +157,8 @@ const studentSchema = new Schema({
     updatedAt: Date
 },
     { timestamps: true }
+    
 );
-
-
 
 
 
