@@ -1,7 +1,8 @@
 const DiningDeclaration = require("../models/DiningDeclaration");
 const Dining = require("../models/DiningModel");
 const Student = require("../models/StudentModel");
-const { ObjectId } = require('mongodb');
+const bcrypt = require('bcryptjs');
+
 
 
 
@@ -242,6 +243,7 @@ exports.studentLoginService = async (loginInfoBody) => {
       return 'User not found'
     } else if (findUser.password) {
       console.log('password already seted')
+      return 'Password already set';
     };
 
     if (!findUser.password) {
@@ -251,9 +253,15 @@ exports.studentLoginService = async (loginInfoBody) => {
         return 'PIN is not match';
       } else if (pinMatching === true) {
 
+        const hashedPassword = bcrypt.hashSync(loginInfoBody.password, 10);
+
+        // const hashPassword = passEncrypt(loginInfoBody.password);
+        // console.log('this pass is created ', hashPassword)
+        
+
         const document = await Student.updateOne(
           { _id: findUser._id },
-          { $set: { password: loginInfoBody.password } }
+          { $set: { password: hashedPassword } }
         );
         return document;
       };
@@ -261,13 +269,14 @@ exports.studentLoginService = async (loginInfoBody) => {
     
     return findUser;
   } catch (error) {
-    console.log('errorrrrrrrrrrr', error)
+    console.error('Error:', error);
+    throw error;
   }
 };
 
 
-exports.getUserService = async (loginInfo) => {
-  const getLoginUser = await Student.findOne({emailOrPhoneNumber: loginInfo.emailOrPhoneNumber});
-  console.log('user gotttttt', getLoginUser)
-  return getLoginUser;
+exports.userLoginService = async (emailOrPhoneNumber) => {
+  const findUser = await Student.findOne({emailOrPhoneNumber});
+
+  return findUser;
 };

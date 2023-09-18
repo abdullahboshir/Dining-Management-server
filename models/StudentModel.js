@@ -72,7 +72,7 @@ const studentSchema = new Schema({
     },
     status: {
         type: String,
-        enum: ['Active', 'InActive'],
+        enum: ['active', 'inActive', 'blocked'],
         default: 'Active'
     },
     department: {
@@ -112,7 +112,7 @@ const studentSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'manager', 'user'],
+        enum: ['admin', 'manager', 'user', 'blocked'],
         default: 'user'
     },
     address: {
@@ -192,6 +192,13 @@ studentSchema.pre('save', function (next) {
     };
     next();
   });
+
+
+//   compare login password 
+  studentSchema.methods.comparePassword = function (password, hashedPassword){
+    const isvalidPassword = bcrypt.compareSync(password, hashedPassword);
+    return isvalidPassword;
+  }
 
 
 
