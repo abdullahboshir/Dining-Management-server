@@ -14,6 +14,10 @@ const studentSchema = new Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin'
     },
+    DiningId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'dining'
+      },
     managerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'manager'
@@ -73,7 +77,7 @@ const studentSchema = new Schema({
     status: {
         type: String,
         enum: ['active', 'inActive', 'blocked'],
-        default: 'Active'
+        default: 'active'
     },
     department: {
         type: String,
