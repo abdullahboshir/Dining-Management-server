@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { userLogin, userToken, diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin } = require('../controllers/dining.controller');
+const { userLogin, loginCheck, userToken, diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin } = require('../controllers/dining.controller');
 const { verifyToken } = require('../middlewares/verifyToken');
 
 
@@ -18,11 +18,14 @@ router.get('/students', getStudents);
 router.get('/students/declaration', getDeclaration);
 
 
-// api of put 
-router.patch('/student/userToken/:id', userToken);
+// api of patch 
+// router.patch('/student/userToken/:id', userToken);
 router.patch('/student/updateDiningFee/:id', updateDiningFee);
 router.patch('/student/mealSwitch/:id', mealSwitch);
 router.patch('/student/setPassword', setStudentLogin)
+
+// api of put
+// router.put('/userToken/:emailOrNumber', loginCheck)
 
 
 module.exports = router;

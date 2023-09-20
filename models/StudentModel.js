@@ -14,7 +14,7 @@ const studentSchema = new Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin'
     },
-    DiningId: {
+    diningId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'dining'
       },
@@ -206,6 +206,6 @@ studentSchema.pre('save', function (next) {
 
 
 
-const Student = mongoose.model('add_student', studentSchema);
+// const Student = mongoose.model('add_student', studentSchema);
 
-module.exports = Student;
+module.exports = studentSchema;

@@ -1,7 +1,14 @@
+const { default: mongoose } = require("mongoose");
 const DiningDeclaration = require("../models/DiningDeclaration");
 const Dining = require("../models/DiningModel");
-const Student = require("../models/StudentModel");
+const studentSchema = require("../models/StudentModel");
+// const Student = require("../models/StudentModel");
 const bcrypt = require('bcryptjs');
+
+
+const modelDriver = modelName => {
+  return mongoose.model(modelName, studentSchema)
+};
 
 
 
@@ -28,20 +35,33 @@ exports.getDeclarationService = async () => {
   return getDeclaration;
 };
 
-
-
-exports.studentCreateService = async (studentBody) => {
-  const student = await Student.create(studentBody);
-  return student;
-};
-
 exports.getDiningService = async () => {
   const dining = await Dining.find({});
   return dining;
 };
 
-exports.getStudentService = async () => {
-  const studentData = await Student.find({});
+
+exports.studentCreateService = async (studentBody) => {
+
+  console.log('existing Dine', studentBody.diningId)
+  const existingDining = await Dining.findOne({_id : studentBody?.diningId});
+  const diningName = existingDining?.diningName?.replace(/ /g, '_');
+
+  const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
+  const student = await Student.create(studentBody);
+  return student;
+};
+
+
+exports.getStudentService = async (dineId) => {
+  // console.log('dining idddddddddddd', dineId)
+  const existingDining = await Dining.findOne({_id : dineId});
+  const diningName = existingDining?.diningName?.replace(/ /g, '_');
+  const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
+
+  
+  const studentData = await Student.find({diningId:  dineId});
+  // console.log('studenttttttttttt', studentData)
   return studentData;
 };
 
@@ -49,6 +69,10 @@ exports.getStudentService = async () => {
 
 
 exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
+  const existingDining = await Dining.findOne({_id : diningFeeBody?.diningId});
+  const diningName = existingDining?.diningName?.replace(/ /g, '_');
+  const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
+
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear().toString();
   const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
@@ -95,6 +119,12 @@ exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
 
 
 exports.mealSwitchService = async (studentId, mealSwitchBody) => {
+
+  const existingDining = await Dining.findOne({_id : mealSwitchBody?.diningId});
+  const diningName = existingDining?.diningName?.replace(/ /g, '_');
+  const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
+
+  // const Student = modelDriver('add_student')
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear().toString();
   const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
@@ -180,7 +210,7 @@ exports.mealSwitchService = async (studentId, mealSwitchBody) => {
 
 async function updateMealInfoData() {
   try {
-
+    const Student = modelDriver('add_student')
     // Get the current date and month
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear().toString();
@@ -237,14 +267,19 @@ setInterval(updateMealInfoData, 24 * 60 * 60 * 1000);
 
 exports.studentLoginService = async (loginInfoBody) => {
   try {
+    const Student = modelDriver('add_student')
     const findUser = await Student.findOne({ emailOrPhoneNumber: loginInfoBody.emailOrPhoneNumber });
+
 
     if (!findUser) {
       return 'User not found'
-    } else if (findUser.password) {
+    } 
+    
+    if (findUser.password) {
       console.log('password already seted')
-      return 'Password already set';
+      return 'Password already has seted before';
     };
+
 
     if (!findUser.password) {
       const pinMatching = loginInfoBody.studentPin === findUser.studentPin;
@@ -276,6 +311,7 @@ exports.studentLoginService = async (loginInfoBody) => {
 
 
 exports.userLoginService = async (emailOrPhoneNumber) => {
+  const Student = modelDriver('add_student')
   const findUser = await Student.findOne({emailOrPhoneNumber});
 
   return findUser;

@@ -1,28 +1,8 @@
-const { userLoginService, userToken,  diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService } = require("../services/dining.service");
+const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService } = require("../services/dining.service");
 const { tokenGenerate } = require("../utils/authToken");
 
 
 
-
-
-exports.userToken = async (req, res) => {
-    try {
-        
-        const getUserToken = await 
-
-        res.status(200).json({
-            status: 'Successed',
-            message: 'Successfully login the User',
-            data: getUserToken
-        })
-    } catch (error) {
-        res.status(400).json({
-            status: 'Failed', 
-            message: 'coutd not login the user',
-            error: error.message
-        })
-    }
-} 
 
 
 exports.diningCreate = async (req, res) => {
@@ -82,14 +62,16 @@ exports.studentCreate = async (req, res) => {
             message: "couln'd create the account",
             error: error.message
         }),
-        console.log(error.message)
+            console.log(error.message)
     }
 };
 
 
 exports.getStudents = async (req, res) => {
     try {
-        const students = await getStudentService();
+        // console.log('got query', req.query.diningId)
+        const dineId = req.query.diningId;
+        const students = await getStudentService(dineId);
 
         res.status(200).json({
             status: 'success',
@@ -107,32 +89,32 @@ exports.getStudents = async (req, res) => {
 
 
 exports.updateDiningFee = async (req, res) => {
-  try {
-    const studentId = req.params.id;
-    const diningFeeBody = req.body;
-    const studentFind = await updateDiningFeeService(studentId, diningFeeBody)
+    try {
+        const studentId = req.params.id;
+        const diningFeeBody = req.body;
+        const studentFind = await updateDiningFeeService(studentId, diningFeeBody)
 
-    console.log('5555555555', studentFind)
-    res.status(200).json({
-        status: 'success',
-        message: 'successfully get the job',
-        data: studentFind
-    })
-  } catch (error) {
-    console.log('444444444', error.message)
+        console.log('5555555555', studentFind)
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully get the job',
+            data: studentFind
+        })
+    } catch (error) {
+        console.log('444444444', error.message)
         res.status(400).json({
             status: 'failed',
             message: "couldn'd get the job",
             error: error.message
         })
-  }
+    }
 };
 
 
 
 exports.declarationCreate = async (req, res) => {
     try {
-        
+
         const declarationBody = req.body;
 
         const declarationRes = await declarationCreateService(declarationBody);
@@ -159,7 +141,7 @@ exports.declarationCreate = async (req, res) => {
 exports.getDeclaration = async (req, res) => {
     try {
         const diningDeclaration = await getDeclarationService();
-    
+
         res.status(200).json({
             status: 'success',
             message: 'successfully get the job',
@@ -177,43 +159,43 @@ exports.getDeclaration = async (req, res) => {
 
 
 exports.mealSwitch = async (req, res) => {
-   try {
-    const studentId = req.params.id;
-    const switchCommand = await mealSwitchService(studentId, req.body);
-   } catch (error) {
-    
-   }
+    try {
+        const studentId = req.params.id;
+        const switchCommand = await mealSwitchService(studentId, req.body);
+    } catch (error) {
+
+    }
 };
 
 
 exports.setStudentLogin = async (req, res) => {
-try {
+    try {
 
-    const resLoginInfo = await studentLoginService(req.body);
+        const resLoginInfo = await studentLoginService(req.body);
 
-    res.status(200).json({
-        status: 'success',
-        message: 'successfully get the job',
-        data: resLoginInfo
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully get the job',
+            data: resLoginInfo
 
-    })
-} catch (error) {
-    res.status(400).json({
-        status: 'failed',
-        message: "couldn'd get the job",
-        error: error.message
-    })
-}
+        })
+    } catch (error) {
+        res.status(400).json({
+            status: 'failed',
+            message: "couldn'd get the job",
+            error: error.message
+        })
+    }
 };
 
 
 exports.userLogin = async (req, res) => {
     try {
-        const {emailOrPhoneNumber, password} = req.body;
+        const { emailOrPhoneNumber, password } = req.body;
         const user = await userLoginService(emailOrPhoneNumber);
 
 
-        if(!user){
+        if (!user) {
             return res.status(404).json({
                 status: 'Failed',
                 error: 'User not found, You are unregisterd'
@@ -222,40 +204,64 @@ exports.userLogin = async (req, res) => {
 
         const isvalidPassword = user.comparePassword(password, user.password)
 
-        if(!isvalidPassword){
+        if (!isvalidPassword) {
             return res.status(401).json({
                 status: 'Failed',
                 error: 'Does not match your Credential'
             })
-          };
+        };
 
 
-          if(user.status != 'active'){
+        if (user.status != 'active') {
             return res.status(403).json({
                 status: 'Failed',
                 error: 'you are blocked'
             })
-          };
+        };
+
+        const token = tokenGenerate(user);
+        const { password: pass, ...others } = user.toObject();
 
 
-          const token = tokenGenerate(user);
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully logged in',
+            data: { others, token }
+        });
 
-          const {password: pass, ...others} = user.toObject();
-
-
-            res.status(200).json({
-                status: 'success',
-                message: 'successfully logged in',
-                data: {
-                    user: others, token
-                }
-            });
-        
     } catch (error) {
+        console.log('got an errorrrrrrrr', error.message)
         res.status(400).json({
             status: 'failed',
             message: "couldn'd get the job",
             error: error.message
         })
     }
-}
+};
+
+
+// exports.loginCheck = async (req, res) => {
+//     try {
+//         const {emailOrNumber} = req.params;
+//         const user = await loginCheckService(emailOrNumber);
+//         console.log('emailllllllll', user)
+
+//         const token = tokenGenerate(user);
+//         const {password: pass, ...others} = user.toObject();
+
+//         res.status(200).json({
+//             status: 'success',
+//             message: 'successfully logged in',
+//             data: {
+//                 user: others, token
+//             }
+//         });
+//     } catch (error) {
+//         console.log('got an errorrrrrrrr', error.message)
+//         res.status(400).json({
+//             status: 'failed',
+//             message: "couldn'd get the job",
+//             error: error.message
+//         })
+//     }
+// }
