@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { userLogin, loginCheck, userToken, diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin } = require('../controllers/dining.controller');
+const { userLogin, loginCheck, userToken, diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin, getAdmin } = require('../controllers/dining.controller');
 const { verifyToken } = require('../middlewares/verifyToken');
+const authorization = require('../middlewares/authorization');
 
 
 // created data
@@ -16,6 +17,7 @@ router.post('/student/add', studentCreate);
 router.get('/dinings', getDining);
 router.get('/students', getStudents);
 router.get('/students/declaration', getDeclaration);
+router.get('/admin/:emailOrNumber', verifyToken, authorization('admin', 'manager'), getAdmin);
 
 
 // api of patch 

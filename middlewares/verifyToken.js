@@ -4,8 +4,8 @@ const {promisify} = require('util');
 
 exports.verifyToken = async (req, res, next) => {
     try {
-        // const token = req.headers.authorization?.split(' ')[1];
-        const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbE9yTnVtYmVyIjoic2FtaXVubm9vcjcxQGdtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNjk1MDQ0NDMyLCJleHAiOjE2OTUzMDM2MzJ9.TK3eOtdIt-5tUIDrL4NfBv-rORVq_Yii34gujgNFK_c"
+        const token = req.headers.authorization?.split(' ')[1];
+
     if(!token){
         return res.status(401).json({
             status: 'Failed',

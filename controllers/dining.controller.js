@@ -1,4 +1,4 @@
-const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService } = require("../services/dining.service");
+const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService, getAdminService } = require("../services/dining.service");
 const { tokenGenerate } = require("../utils/authToken");
 
 
@@ -193,6 +193,7 @@ exports.userLogin = async (req, res) => {
     try {
         const { emailOrPhoneNumber, password } = req.body;
         const user = await userLoginService(emailOrPhoneNumber);
+        console.log('gotttttttttttt', password, user)
 
 
         if (!user) {
@@ -202,6 +203,7 @@ exports.userLogin = async (req, res) => {
             })
         };
 
+        // const isvalidPassword = bcrypt.compareSync(password, user.password);
         const isvalidPassword = user.comparePassword(password, user.password)
 
         if (!isvalidPassword) {
@@ -240,28 +242,33 @@ exports.userLogin = async (req, res) => {
 };
 
 
-// exports.loginCheck = async (req, res) => {
-//     try {
-//         const {emailOrNumber} = req.params;
-//         const user = await loginCheckService(emailOrNumber);
-//         console.log('emailllllllll', user)
+exports.getAdmin = async (req, res) => {
+    try {
+        
+        const user = await getAdminService(req.params)
+        // console.log('emailllllllll', user)
 
-//         const token = tokenGenerate(user);
-//         const {password: pass, ...others} = user.toObject();
+        if(!user){
+            res.status(404).json({
+                status: 'Failed',
+                message: 'User not found'
+            })
+        };
 
-//         res.status(200).json({
-//             status: 'success',
-//             message: 'successfully logged in',
-//             data: {
-//                 user: others, token
-//             }
-//         });
-//     } catch (error) {
-//         console.log('got an errorrrrrrrr', error.message)
-//         res.status(400).json({
-//             status: 'failed',
-//             message: "couldn'd get the job",
-//             error: error.message
-//         })
-//     }
-// }
+        const isAdmin = user.role === 'admin';
+
+
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully logged in',
+            admin: isAdmin
+        });
+    } catch (error) {
+        console.log('got an errorrrrrrrr', error.message)
+        res.status(400).json({
+            status: 'failed',
+            message: "couldn'd get the job",
+            error: error.message
+        })
+    }
+}
