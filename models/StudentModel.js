@@ -116,7 +116,7 @@ const studentSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'manager', 'user', 'blocked'],
+        enum: ['admin', 'manager', 'user', 'modarator'],
         default: 'user'
     },
     address: {

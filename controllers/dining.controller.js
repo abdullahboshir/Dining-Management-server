@@ -1,4 +1,4 @@
-const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService, getAdminService } = require("../services/dining.service");
+const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService, getAdminService, userProfileService } = require("../services/dining.service");
 const { tokenGenerate } = require("../utils/authToken");
 
 
@@ -69,7 +69,6 @@ exports.studentCreate = async (req, res) => {
 
 exports.getStudents = async (req, res) => {
     try {
-        // console.log('got query', req.query.diningId)
         const dineId = req.query.diningId;
         const students = await getStudentService(dineId);
 
@@ -79,6 +78,7 @@ exports.getStudents = async (req, res) => {
             data: students
         })
     } catch (error) {
+        console.log('errorrrrrrrrrrrrr'. error?.message)
         res.status(400).json({
             status: 'failed',
             message: "couldn'd get the job",
@@ -168,7 +168,7 @@ exports.mealSwitch = async (req, res) => {
 };
 
 
-exports.setStudentLogin = async (req, res) => {
+exports.setStudentLogin = async (req, res) => { 
     try {
 
         const resLoginInfo = await studentLoginService(req.body);
@@ -193,7 +193,6 @@ exports.userLogin = async (req, res) => {
     try {
         const { emailOrPhoneNumber, password } = req.body;
         const user = await userLoginService(emailOrPhoneNumber);
-        console.log('gotttttttttttt', password, user)
 
 
         if (!user) {
@@ -246,7 +245,7 @@ exports.getAdmin = async (req, res) => {
     try {
         
         const user = await getAdminService(req.params)
-        // console.log('emailllllllll', user)
+      
 
         if(!user){
             res.status(404).json({
@@ -255,13 +254,14 @@ exports.getAdmin = async (req, res) => {
             })
         };
 
+        const {password, ...others} = user.toObject()
         const isAdmin = user.role === 'admin';
 
 
         res.status(200).json({
             status: 'success',
             message: 'successfully logged in',
-            admin: isAdmin
+            data: {isAdmin, others}
         });
     } catch (error) {
         console.log('got an errorrrrrrrr', error.message)
@@ -271,4 +271,34 @@ exports.getAdmin = async (req, res) => {
             error: error.message
         })
     }
+};
+
+
+exports.verifyProfile = async (req, res) => {
+try {
+    const userProfileVerify = await userProfileService(req.user.emailOrNumber);
+    
+    const {password: pass, ...others} = userProfileVerify.toObject();
+    // console.log('userrrrrrrrrrr', others)
+
+    if(!userProfileVerify){
+        res.status(404).json({
+            status: 'Failed',
+            message: 'User not found'
+        })
+    };
+
+    res.status(200).json({
+        status: 'success',
+        message: 'successfully logged in',
+        data: others
+    });
+} catch (error) {
+    console.log('got an errorrrrrrrr', error.message)
+    res.status(400).json({
+        status: 'failed',
+        message: "couldn'd get the job",
+        error: error.message
+    })
+}
 }
