@@ -1,15 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { userLogin, loginCheck, userToken, diningCreate, getDining, studentCreate, getStudents, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin, getAdmin, verifyProfile } = require('../controllers/dining.controller');
+const { userLogin, diningCreate, getDining, studentCreate, getStudents, postController, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin, getAdmin, verifyProfile } = require('../controllers/dining.controller');
 const { verifyToken } = require('../middlewares/verifyToken');
 const authorization = require('../middlewares/authorization');
+const uploader = require('../middlewares/uploader');
 
 
 // created data
 router.post('/student/login', userLogin);
 router.post('/dining/add', diningCreate);
 router.post('/students/declaration', declarationCreate);
-router.post('/student/add', studentCreate);
+router.post('/post', uploader.single('img'), postController);
+router.post('/student/add', uploader.single('img'), studentCreate);
 
 
 //  api of all get

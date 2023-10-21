@@ -77,7 +77,8 @@ const studentSchema = new Schema({
     status: {
         type: String,
         enum: ['active', 'inActive', 'blocked'],
-        default: 'active'
+        default: 'active',
+        set: (value) => value.toLowerCase()
     },
     department: {
         type: String,
@@ -118,6 +119,10 @@ const studentSchema = new Schema({
         type: String,
         enum: ['admin', 'manager', 'user', 'modarator'],
         default: 'user'
+    },
+    studentImg: {
+        type: String,
+        required: [true, 'Image path is required']
     },
     address: {
         father: {

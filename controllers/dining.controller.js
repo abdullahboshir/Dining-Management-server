@@ -48,8 +48,13 @@ exports.getDining = async (req, res) => {
 exports.studentCreate = async (req, res) => {
     try {
         const studentBody = req.body;
+        const studentImage = req.file.path;
+        if(studentImage){
+            studentBody.studentImg = studentImage
+        };
+
+        console.log('tassssssss', studentImage)
         const createdStudent = await studentCreateService(studentBody);
-        console.log('tassssssss', createdStudent)
 
         res.status(200).json({
             status: 'success',
@@ -57,12 +62,12 @@ exports.studentCreate = async (req, res) => {
             data: createdStudent
         });
     } catch (error) {
+        console.log('these are errorrrrrrrrr', error.message)
         res.status(400).json({
             status: 'failed',
             message: "couln'd create the account",
             error: error.message
-        }),
-            console.log(error.message)
+        })
     }
 };
 
@@ -78,7 +83,7 @@ exports.getStudents = async (req, res) => {
             data: students
         })
     } catch (error) {
-        console.log('errorrrrrrrrrrrrr'. error?.message)
+        console.log('errorrrrrrrrrrrrr'.error?.message)
         res.status(400).json({
             status: 'failed',
             message: "couldn'd get the job",
@@ -86,6 +91,18 @@ exports.getStudents = async (req, res) => {
         })
     }
 };
+
+
+exports.postController = (req, res) => {
+    try {
+        const formData = req.body;
+        const img = req.file;
+        console.log('is hereeeeeeeeeeee', formData)
+        res.status(200).json({ data: formData, img })
+    } catch (error) {
+
+    }
+}
 
 
 exports.updateDiningFee = async (req, res) => {
@@ -168,7 +185,7 @@ exports.mealSwitch = async (req, res) => {
 };
 
 
-exports.setStudentLogin = async (req, res) => { 
+exports.setStudentLogin = async (req, res) => {
     try {
 
         const resLoginInfo = await studentLoginService(req.body);
@@ -243,25 +260,25 @@ exports.userLogin = async (req, res) => {
 
 exports.getAdmin = async (req, res) => {
     try {
-        
-        const user = await getAdminService(req.params)
-      
 
-        if(!user){
+        const user = await getAdminService(req.params)
+
+
+        if (!user) {
             res.status(404).json({
                 status: 'Failed',
                 message: 'User not found'
             })
         };
 
-        const {password, ...others} = user.toObject()
+        const { password, ...others } = user.toObject()
         const isAdmin = user.role === 'admin';
 
 
         res.status(200).json({
             status: 'success',
             message: 'successfully logged in',
-            data: {isAdmin, others}
+            data: { isAdmin, others }
         });
     } catch (error) {
         console.log('got an errorrrrrrrr', error.message)
@@ -275,30 +292,30 @@ exports.getAdmin = async (req, res) => {
 
 
 exports.verifyProfile = async (req, res) => {
-try {
-    const userProfileVerify = await userProfileService(req.user.emailOrNumber);
-    
-    const {password: pass, ...others} = userProfileVerify.toObject();
-    // console.log('userrrrrrrrrrr', others)
+    try {
+        const userProfileVerify = await userProfileService(req.user.emailOrNumber);
 
-    if(!userProfileVerify){
-        res.status(404).json({
-            status: 'Failed',
-            message: 'User not found'
+        const { password: pass, ...others } = userProfileVerify.toObject();
+        // console.log('userrrrrrrrrrr', others)
+
+        if (!userProfileVerify) {
+            res.status(404).json({
+                status: 'Failed',
+                message: 'User not found'
+            })
+        };
+
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully logged in',
+            data: others
+        });
+    } catch (error) {
+        console.log('got an errorrrrrrrr', error.message)
+        res.status(400).json({
+            status: 'failed',
+            message: "couldn'd get the job",
+            error: error.message
         })
-    };
-
-    res.status(200).json({
-        status: 'success',
-        message: 'successfully logged in',
-        data: others
-    });
-} catch (error) {
-    console.log('got an errorrrrrrrr', error.message)
-    res.status(400).json({
-        status: 'failed',
-        message: "couldn'd get the job",
-        error: error.message
-    })
-}
+    }
 }
