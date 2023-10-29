@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { userLogin, diningCreate, getDining, studentCreate, getStudents, postController, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin, getAdmin, verifyProfile } = require('../controllers/dining.controller');
+const { userLogin, diningCreate, getDining, studentCreate, getStudents, postController, updateDiningFee, declarationCreate, mealSwitch, getDeclaration, setStudentLogin, getAdmin, verifyProfile, getPosts } = require('../controllers/dining.controller');
 const { verifyToken } = require('../middlewares/verifyToken');
 const authorization = require('../middlewares/authorization');
 const uploader = require('../middlewares/uploader');
@@ -10,7 +10,7 @@ const uploader = require('../middlewares/uploader');
 router.post('/student/login', userLogin);
 router.post('/dining/add', diningCreate);
 router.post('/students/declaration', declarationCreate);
-router.post('/post', uploader.single('img'), postController);
+router.post('/post', uploader.array('images', 10), postController);
 router.post('/student/add', uploader.single('img'), studentCreate);
 
 
@@ -18,9 +18,11 @@ router.post('/student/add', uploader.single('img'), studentCreate);
 // router.get('/student/login', verifyToken, userLogin);
 router.get('/dinings', verifyToken, authorization('admin', 'manager'), getDining);
 router.get('/students', getStudents);
+router.get('/posts', getPosts);
 router.get('/students/declaration', getDeclaration);
 router.get('/profileVerify', verifyToken, verifyProfile);
 router.get('/admin/:emailOrNumber', verifyToken, authorization('admin', 'manager'), getAdmin);
+
 
 
 // api of patch 

@@ -1,4 +1,4 @@
-const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService, getAdminService, userProfileService } = require("../services/dining.service");
+const { userLoginService, diningCreateService, studentCreateService, getDiningService, getStudentService, updateDiningFeeService, getDeclarationService, declarationCreateService, mealSwitchService, studentLoginService, getAdminService, userProfileService, postServices, getPostsService } = require("../services/dining.service");
 const { tokenGenerate } = require("../utils/authToken");
 
 
@@ -48,12 +48,13 @@ exports.getDining = async (req, res) => {
 exports.studentCreate = async (req, res) => {
     try {
         const studentBody = req.body;
+        console.log('tassssssss', studentBody)
         const studentImage = req.file.path;
         if(studentImage){
             studentBody.studentImg = studentImage
         };
 
-        console.log('tassssssss', studentImage)
+        console.log('tassssssss', req.file)
         const createdStudent = await studentCreateService(studentBody);
 
         res.status(200).json({
@@ -93,16 +94,47 @@ exports.getStudents = async (req, res) => {
 };
 
 
-exports.postController = (req, res) => {
+exports.postController = async (req, res) => {
     try {
-        const formData = req.body;
-        const img = req.file;
-        console.log('is hereeeeeeeeeeee', formData)
-        res.status(200).json({ data: formData, img })
-    } catch (error) {
+        const postData = req.body;
 
+        const images = req.files.map((image) => ({name: image.originalname, path: image.path}));
+        postData.img = images;
+
+        const postRes = await postServices(postData);
+        res.status(200).json({
+            status: true,
+            message: 'Post successfull',
+            data: postRes
+        })
+    } catch (error) {
+        res.status(400).json({
+            status: 'failed',
+            message: "couldn't get the job",
+            error: error.message
+        })
     }
-}
+};
+
+
+exports.getPosts = async (req, res) => {
+    try {
+        const posts = await getPostsService();
+
+        res.status(200).json({
+            status: 'success',
+            message: 'successfully get the job',
+            data: posts
+        })
+    } catch (error) {
+        console.log('errorrrrrrrrrrrrr'.error?.message)
+        res.status(400).json({
+            status: 'failed',
+            message: "couldn'd get the job",
+            error: error.message
+        })
+    }
+};
 
 
 exports.updateDiningFee = async (req, res) => {

@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 const uploader = multer({
     storage,
     fileFilter: (req, file, cb) => {
-        const supportedImage = /jpg|png/;
+        const supportedImage = /jpg|png|jpeg/;
         const extension = path.extname(file.originalname);
         if(supportedImage.test(extension)){
             cb(null, true);

@@ -5,6 +5,7 @@ const studentSchema = require("../models/StudentModel");
 // const Student = require("../models/StudentModel");
 const bcrypt = require('bcryptjs');
 const getDbCollectionName = require("../server");
+const Post = require("../models/PostModel");
 
 
 
@@ -42,11 +43,16 @@ exports.getDiningService = async () => {
   return dining;
 };
 
+exports.getPostsService = async () => {
+  const dining = await Post.find({});
+  return dining;
+};
+
 
 exports.studentCreateService = async (studentBody) => {
 
   console.log('existing Dine', studentBody.diningId)
-  const existingDining = await Dining.findOne({_id : studentBody?.diningId});
+  const existingDining = await Dining.findOne({ _id: studentBody?.diningId });
   const diningName = existingDining?.diningName?.replace(/ /g, '_');
 
   const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
@@ -56,12 +62,12 @@ exports.studentCreateService = async (studentBody) => {
 
 
 exports.getStudentService = async (diningId) => {
-  const existingDining = await Dining.findOne({_id : diningId});
+  const existingDining = await Dining.findOne({ _id: diningId });
   const diningName = existingDining?.diningName?.replace(/ /g, '_');
   const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
   // console.log('studenttttttttttt', existingDining?.diningName && diningName + '_Students')
-  
-  
+
+
   const studentData = await Student.find({});
 
   return studentData;
@@ -71,7 +77,7 @@ exports.getStudentService = async (diningId) => {
 
 
 exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
-  const existingDining = await Dining.findOne({_id : diningFeeBody?.diningId});
+  const existingDining = await Dining.findOne({ _id: diningFeeBody?.diningId });
   const diningName = existingDining?.diningName?.replace(/ /g, '_');
   const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
 
@@ -122,7 +128,7 @@ exports.updateDiningFeeService = async (studentId, diningFeeBody) => {
 
 exports.mealSwitchService = async (studentId, mealSwitchBody) => {
 
-  const existingDining = await Dining.findOne({_id : mealSwitchBody?.diningId});
+  const existingDining = await Dining.findOne({ _id: mealSwitchBody?.diningId });
   const diningName = existingDining?.diningName?.replace(/ /g, '_');
   const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
 
@@ -215,64 +221,64 @@ exports.updateMealInfoData = async () => {
 
     setInterval(async () => {
 
-         // Get the current date
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear().toString();
-   const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
-      
+      // Get the current date
+      const currentDate = new Date();
+      const currentYear = currentDate.getFullYear().toString();
+      const currentMonth = currentDate.toLocaleString('default', { month: 'long', locale: 'bn-BD' });
+
 
       const collections = await mongoose.connection.db.collections();
-      const studentCollections = collections.filter((collection) => {return collection.collectionName.includes('student')})
-      const Student = studentCollections.map(async(collection) => {
+      const studentCollections = collections.filter((collection) => { return collection.collectionName.includes('student') })
+      const Student = studentCollections.map(async (collection) => {
         const Student = modelDriver(collection.collectionName);
 
 
-     
-    // Check if the current year exists in any student's mealInfo
-    const yearExist = await Student.exists({
-      [`mealInfo.${currentYear}`]: { $exists: true }
-    });
 
-    // Check if the current month exists in any student's mealInfo
-    const monthExists = await Student.exists({
-      [`mealInfo.${currentYear}.${currentMonth}`]: { $exists: true } 
-    });
+        // Check if the current year exists in any student's mealInfo
+        const yearExist = await Student.exists({
+          [`mealInfo.${currentYear}`]: { $exists: true }
+        });
+
+        // Check if the current month exists in any student's mealInfo
+        const monthExists = await Student.exists({
+          [`mealInfo.${currentYear}.${currentMonth}`]: { $exists: true }
+        });
 
 
-    if (!monthExists) {
-      const studentMealInfo = {
-        mealStatus: 'off',
-        maintenanceFee: 0,
-        totalDeposit: 0,
-        currentDeposit: 0,
-        lastMonthRefund: 0,
-        lastMonthDue: 0,
-        totalMeal: 0,
-        mealCharge: 0,
-        fixedMeal: 0,
-        fixedMealCharge: 0,
-        totalCost: 0,
-        dueDeposite: 0,
-        refundable: 0
-      };
+        if (!monthExists) {
+          const studentMealInfo = {
+            mealStatus: 'off',
+            maintenanceFee: 0,
+            totalDeposit: 0,
+            currentDeposit: 0,
+            lastMonthRefund: 0,
+            lastMonthDue: 0,
+            totalMeal: 0,
+            mealCharge: 0,
+            fixedMeal: 0,
+            fixedMealCharge: 0,
+            totalCost: 0,
+            dueDeposite: 0,
+            refundable: 0
+          };
 
-      const result = await Student.updateMany(
-        {},
-        { $set: { [`mealInfo.${currentYear}.${currentMonth}`]: studentMealInfo } }
-      ).catch(error => {
-        console.log('Update error', error.message)
-      })
+          const result = await Student.updateMany(
+            {},
+            { $set: { [`mealInfo.${currentYear}.${currentMonth}`]: studentMealInfo } }
+          ).catch(error => {
+            console.log('Update error', error.message)
+          })
 
-      console.log(`Added ${currentMonth} to mealInfo.2023 for ${result} students.`);
-    } else {
-      console.log(`${currentMonth} already exists in mealInfo.2023. No update needed.`);
-    }
+          console.log(`Added ${currentMonth} to mealInfo.2023 for ${result} students.`);
+        } else {
+          console.log(`${currentMonth} already exists in mealInfo.2023. No update needed.`);
+        }
 
       });
 
 
     }, 24 * 60 * 60 * 2000);
-  
+
 
   } catch (error) {
     console.error('Error:', error);
@@ -285,10 +291,10 @@ exports.updateMealInfoData = async () => {
 
 exports.studentLoginService = async (loginInfoBody) => {
   try {
-  
+
     let finddiningId;
     const allUsers = []; // Array to store all users
-    
+
     const collections = await mongoose.connection.db.collections();
     const studentCollections = collections
       .filter((collection) => collection.collectionName.includes('student'));
@@ -297,34 +303,34 @@ exports.studentLoginService = async (loginInfoBody) => {
       const usersInCollection = await finddiningId.find({}); // Retrieve all users in the collection
       allUsers.push(...usersInCollection); // Add users to the allUsers array
     }
-    
 
-    const findUser =  allUsers.find(user => user.emailOrPhoneNumber === loginInfoBody?.emailOrPhoneNumber );
+
+    const findUser = allUsers.find(user => user.emailOrPhoneNumber === loginInfoBody?.emailOrPhoneNumber);
     if (!findUser) {
       return 'User not found';
     }
     // console.log('All users from student collections:', findUser);
-    const existingDining = await Dining.findOne({_id : findUser?.diningId});
+    const existingDining = await Dining.findOne({ _id: findUser?.diningId });
     const diningName = existingDining?.diningName?.replace(/ /g, '_');
     const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
-    
-    
+
+
     if (!findUser) {
       return 'User not found'
-    } 
-    
+    }
+
 
     if (findUser.password) {
       console.log('password already seted')
       return 'Password already has seted before';
     };
-    
-    
+
+
     if (findUser.password === "") {
       const pinMatching = loginInfoBody.studentPin === findUser.studentPin;
-     
+
       if (!pinMatching) {
-        return {pinNotMatch : 'PIN is not match'};
+        return { pinNotMatch: 'PIN is not match' };
       } else if (pinMatching === true) {
 
 
@@ -332,7 +338,7 @@ exports.studentLoginService = async (loginInfoBody) => {
 
         // const hashPassword = passEncrypt(loginInfoBody.password);
         // console.log('this pass is created ', hashPassword)
-        
+
 
         const document = await Student.updateOne(
           { _id: findUser._id },
@@ -340,8 +346,8 @@ exports.studentLoginService = async (loginInfoBody) => {
         );
         return document;
       };
-    }; 
-    
+    };
+
     return findUser;
   } catch (error) {
     console.error('Error:', error);
@@ -351,45 +357,10 @@ exports.studentLoginService = async (loginInfoBody) => {
 
 
 exports.userLoginService = async (emailOrPhoneNumber) => {
-  
+
   let finddiningId;
-    const allUsers = []; // Array to store all users
-    
-    const collections = await mongoose.connection.db.collections();
-    const studentCollections = collections
-      .filter((collection) => collection.collectionName.includes('student'));
-    for (const collection of studentCollections) {
-      finddiningId = modelDriver(collection.collectionName);
-      const usersInCollection = await finddiningId.find({}); // Retrieve all users in the collection
-      allUsers.push(...usersInCollection); // Add users to the allUsers array
-    }
-    
-    console.log('All users from student collections:', allUsers.length);
-    const findUser =  allUsers.find(user => user.emailOrPhoneNumber === emailOrPhoneNumber );
-    
-    if (!findUser) {
-      return 'User not found';
-    }
-    
-    const existingDining = await Dining.findOne({_id : findUser?.diningId});
-    const diningName = existingDining?.diningName?.replace(/ /g, '_');
-    const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
-    
-    const getLoginUser = await Student.findOne({emailOrPhoneNumber})
+  const allUsers = []; // Array to store all users
 
-    
-    if (!getLoginUser) {
-      return 'User not found'
-    } 
-
-  return getLoginUser;
-};
-
-
-exports.getAdminService = async (emailOrPhoneNumber) => {
-  let finddiningId;
-  const allUsers = [];
-  
   const collections = await mongoose.connection.db.collections();
   const studentCollections = collections
     .filter((collection) => collection.collectionName.includes('student'));
@@ -398,47 +369,88 @@ exports.getAdminService = async (emailOrPhoneNumber) => {
     const usersInCollection = await finddiningId.find({}); // Retrieve all users in the collection
     allUsers.push(...usersInCollection); // Add users to the allUsers array
   }
-  
+
   console.log('All users from student collections:', allUsers.length);
-  const findUser =  allUsers.find(user => user.emailOrPhoneNumber === emailOrPhoneNumber?.emailOrNumber );
+  const findUser = allUsers.find(user => user.emailOrPhoneNumber === emailOrPhoneNumber);
 
   if (!findUser) {
     return 'User not found';
   }
-  
-  const existingDining = await Dining.findOne({_id : findUser?.diningId});
+
+  const existingDining = await Dining.findOne({ _id: findUser?.diningId });
   const diningName = existingDining?.diningName?.replace(/ /g, '_');
   const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
-  
-  const getLoginUser = await Student.findOne({emailOrPhoneNumber: emailOrPhoneNumber?.emailOrNumber})
+
+  const getLoginUser = await Student.findOne({ emailOrPhoneNumber })
+
+
+  if (!getLoginUser) {
+    return 'User not found'
+  }
+
+  return getLoginUser;
+};
+
+
+exports.getAdminService = async (emailOrPhoneNumber) => {
+  let finddiningId;
+  const allUsers = [];
+
+  const collections = await mongoose.connection.db.collections();
+  const studentCollections = collections
+    .filter((collection) => collection.collectionName.includes('student'));
+  for (const collection of studentCollections) {
+    finddiningId = modelDriver(collection.collectionName);
+    const usersInCollection = await finddiningId.find({}); // Retrieve all users in the collection
+    allUsers.push(...usersInCollection); // Add users to the allUsers array
+  }
+
+  console.log('All users from student collections:', allUsers.length);
+  const findUser = allUsers.find(user => user.emailOrPhoneNumber === emailOrPhoneNumber?.emailOrNumber);
+
+  if (!findUser) {
+    return 'User not found';
+  }
+
+  const existingDining = await Dining.findOne({ _id: findUser?.diningId });
+  const diningName = existingDining?.diningName?.replace(/ /g, '_');
+  const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
+
+  const getLoginUser = await Student.findOne({ emailOrPhoneNumber: emailOrPhoneNumber?.emailOrNumber })
   return getLoginUser
 };
 
 
 exports.userProfileService = async (emailOrPhoneNumber) => {
   let finddiningId;
-    const allUsers = []; // Array to store all users
-    
-    const collections = await mongoose.connection.db.collections();
-    const studentCollections = collections
-      .filter((collection) => collection.collectionName.includes('student'));
-    for (const collection of studentCollections) {
-      finddiningId = modelDriver(collection.collectionName);
-      const usersInCollection = await finddiningId.find({}); // Retrieve all users in the collection
-      allUsers.push(...usersInCollection); // Add users to the allUsers array
-    }
-    
-    const findUser =  allUsers.find(user => user.emailOrPhoneNumber === emailOrPhoneNumber );
-    
+  const allUsers = []; // Array to store all users
 
-    if (!findUser) {
-      return 'User not found';
-    }
-    
-    const existingDining = await Dining.findOne({_id : findUser?.diningId});
-    const diningName = existingDining?.diningName?.replace(/ /g, '_');
-    const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
-    
-    const existingUser = await Student.findOne({emailOrPhoneNumber});
-return existingUser;
+  const collections = await mongoose.connection.db.collections();
+  const studentCollections = collections
+    .filter((collection) => collection.collectionName.includes('student'));
+  for (const collection of studentCollections) {
+    finddiningId = modelDriver(collection.collectionName);
+    const usersInCollection = await finddiningId.find({}); // Retrieve all users in the collection
+    allUsers.push(...usersInCollection); // Add users to the allUsers array
+  }
+
+  const findUser = allUsers.find(user => user.emailOrPhoneNumber === emailOrPhoneNumber);
+
+
+  if (!findUser) {
+    return 'User not found';
+  }
+
+  const existingDining = await Dining.findOne({ _id: findUser?.diningId });
+  const diningName = existingDining?.diningName?.replace(/ /g, '_');
+  const Student = modelDriver(existingDining?.diningName && diningName + '_Students')
+
+  const existingUser = await Student.findOne({ emailOrPhoneNumber });
+  return existingUser;
+};
+
+
+exports.postServices = async (postInfo) => {
+  const post = await Post.create(postInfo);
+  return post;
 };
